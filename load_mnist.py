@@ -16,7 +16,7 @@ def class_encoder(y):
 #------------------
 # Prepare Dataset
 #------------------
-def load_data():
+def load_data(normalize=True):
     """
     Load MNIST dataset and prepare it for training and testing
     """
@@ -27,11 +27,12 @@ def load_data():
     X_test = X_test.reshape(X_test.shape[0], -1)
 
     # Normalize the data to be in the range [0, 1]
-    X_train = X_train / 255.0
-    X_test = X_test / 255.0
+    if normalize:
+        X_train = X_train / 255.0
+        X_test = X_test / 255.0
 
     # One-hot encode the labels
     y_train_encoded = class_encoder(y_train)
     y_test_encoded = class_encoder(y_test)
 
-    return [X_train, y_train_encoded, X_test, y_test_encoded]
+    return [X_train[:1000], y_train_encoded[:1000], X_test[:1000], y_test_encoded[:1000]]
