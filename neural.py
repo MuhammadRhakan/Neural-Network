@@ -21,7 +21,6 @@ def linear(W, X, b):
 
     Eq: Z = W * X + b
     """
-
     return np.dot(W, X) + b
 
 
@@ -43,6 +42,11 @@ def cross_entropy_loss(Y_hat, Y):
     return -loss / Y.shape[1]
 
 
+def accuracy(Y_hat, Y):
+    predictions = np.argmax(Y_hat, axis=0)
+    labels = np.argmax(Y, axis=0)
+    return np.mean(predictions == labels) * 100
+
 
 def trainer(X, Y, params, epochs=30, lr=0.05):
     W1, b1, W2, b2 = params['W1'], params['b1'], params['W2'], params['b2']
@@ -56,7 +60,7 @@ def trainer(X, Y, params, epochs=30, lr=0.05):
 
         # Compute loss
         loss = cross_entropy_loss(Y_hat, Y)
-        print(f"Epoch {epoch + 1}/{epochs}, Loss: {loss:.4f}")
+        print(f"Epoch {epoch + 1}/{epochs},     Loss: {loss:.4f},      Accuracy: {accuracy(Y_hat, Y):.2f}%")
 
         # Backward pass
         dZ2 = Y_hat - Y
@@ -73,8 +77,6 @@ def trainer(X, Y, params, epochs=30, lr=0.05):
         b1 -= lr * db1
         W2 -= lr * dW2
         b2 -= lr * db2
-
-
 
 
 #-------------------
