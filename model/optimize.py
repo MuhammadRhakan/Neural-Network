@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class GD:
+class GradientDescent:
     def __init__(self, lr=0.01):
         self.lr = lr
 

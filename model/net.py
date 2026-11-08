@@ -1,8 +1,12 @@
 import numpy as np
 
+# Each layer has its own states in doing forward pass and calculating gradient
+# It is separate from the gradient update, allowing them to manage their internal state
+# Backward state results gradient input for the subsequent chain, while the weights are stored to be updated independently during optimization  
+
 
 class Linear:
-    def __init__(self, input_size, output_size):
+    def __init__(self, input_size, output_size, random_seed):
         self.W = np.random.randn(output_size, input_size) * np.sqrt(2 / input_size)
         self.b = np.zeros((output_size, 1))
 
@@ -20,14 +24,12 @@ class Linear:
         self.db = 1/m * np.sum(grad_output, axis=1, keepdims=True)
 
         grad_input = np.dot(self.W.T, grad_output)
-
         return grad_input
 
     def parameters(self):
         return [
             (self.W, self.dW),
-            (self.b, self.db)
-        ]
+            (self.b, self.db)]
 
 
 class Activation:
@@ -66,20 +68,3 @@ class Activation:
             raise ValueError("Unsupported activation type")
 
 
-class SoftmaxCrossEntropy:
-    def forward(self, Z, y_true):
-        self.Z = Z
-        self.y_true = y_true
-
-        e_z = np.exp(Z - np.max(Z, axis=0, keepdims=True))
-        y_pred = e_z / np.sum(e_z, axis=0, keepdims=True)
-
-        loss = -np.sum(y_true * np.log(np.clip(y_pred, 1e-15, 1 - 1e-15))) / y_true.shape[1]
-        return loss
-
-
-    def backward(self):
-        M = self.y_true.shape[-1]
-        grad_input = self.Z - self.y_true 
-        return grad_input
-        
