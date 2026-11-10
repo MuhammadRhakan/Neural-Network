@@ -1,70 +1,54 @@
 import numpy as np
 
-# Each layer has its own states in doing forward pass and calculating gradient
-# It is separate from the gradient update, allowing them to manage their internal state
-# Backward state results gradient input for the subsequent chain, while the weights are stored to be updated independently during optimization  
 
-
-class Linear:
-    def __init__(self, input_size, output_size, random_seed):
-        self.W = np.random.randn(output_size, input_size) * np.sqrt(2 / input_size)
-        self.b = np.zeros((output_size, 1))
-
-        self.dW = None
-        self.db = None
-        self.X = None
+class Sequential:
+    def __init__(self, layers: list):
+        self.layers = layers
 
     def forward(self, X):
+        for layer in self.layers:
+            X = layer.forward(X)
+        return X
+
+    def backward(self, grad):
+        for layer in reversed(self.layers):
+            grad = layer.backward(grad)
+        return grad
+
+    def get_params(self):
+        params = []
+
+        for layer in self.layers:
+            if hasattr(layer, 'parameters'):
+                params.extend(layer.parameters())
+
+        return 
+    
+
+
+class DataLoader:
+    def __init__(self, X, y=None, batch_size=None, drop_last=True, shuffle=True):
         self.X = X
-        return np.dot(self.W, X) + self.b
+        self.y = y
+        self.batch_size = batch_size
+        self.drop_last = drop_last
+        self.shuffle = shuffle
 
-    def backward(self, grad_output):
-        m = self.X.shape[1]
-        self.dW = 1/m * np.dot(grad_output, self.X.T)
-        self.db = 1/m * np.sum(grad_output, axis=1, keepdims=True)
+    def __iter__(self):
+        num_samples = len(self.X)
+        indices = np.arange(num_samples)
 
-        grad_input = np.dot(self.W.T, grad_output)
-        return grad_input
+        if self.shuffle:
+            np.random.shuffle(indices)
 
-    def parameters(self):
-        return [
-            (self.W, self.dW),
-            (self.b, self.db)]
+        if self.drop_last:
+            num_samples -= num_samples % self.batch_size
+            indices = indices[:num_samples]
 
+        for batch_i in range(0, num_samples, self.batch_size):
+            batch_indices = indices[batch_i : (batch_i + self.batch_size)]
 
-class Activation:
-    def __init__(self, activation_type):
-        self.activation_type = activation_type
-        self.Z = None
-
-    def forward(self, Z):
-        self.Z = Z
-        if self.activation_type == 'sigmoid':
-            return 1 / (1 + np.exp(-Z))
-        
-        elif self.activation_type == 'relu':
-            return np.maximum(0, Z)
-
-        elif self.activation_type =='tanh':
-            return np.tanh(Z)
-        
-        else:
-            raise ValueError("Unsupported activation type")
-
-
-    def backward(self, grad_output):
-        if self.activation_type == 'sigmoid':
-            sigmoid = 1 / (1 + np.exp(-self.Z))
-            return grad_output * sigmoid * (1 - sigmoid)
-        
-        elif self.activation_type == 'relu':
-            return grad_output * (self.Z > 0).astype(float)
-
-        elif self.activation_type == 'tanh':
-            tanh = np.tanh(self.Z)
-            return grad_output * (1 - tanh ** 2)
-        
-        else:
-            raise ValueError("Unsupported activation type")
-
-
+            if self.y is None:
+                yield self.X[batch_indices]
+            else:
+                yield self.X[batch_indices], self.y[batch_indices]
