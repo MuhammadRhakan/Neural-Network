@@ -22,17 +22,18 @@ class Sequential:
             if hasattr(layer, 'parameters'):
                 params.extend(layer.parameters())
 
-        return 
+        return params
     
 
 
 class DataLoader:
-    def __init__(self, X, y=None, batch_size=None, drop_last=True, shuffle=True):
+    def __init__(self, X, y, batch_size=None, drop_last=True, shuffle=True):
         self.X = X
         self.y = y
         self.batch_size = batch_size
         self.drop_last = drop_last
         self.shuffle = shuffle
+        self.num_batches = (len(X) + batch_size - 1) // batch_size
 
     def __iter__(self):
         num_samples = len(self.X)
@@ -52,3 +53,6 @@ class DataLoader:
                 yield self.X[batch_indices]
             else:
                 yield self.X[batch_indices], self.y[batch_indices]
+
+    def __len__(self):
+        return self.num_batches

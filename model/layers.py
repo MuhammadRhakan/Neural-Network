@@ -67,3 +67,16 @@ class Activation:
             raise ValueError("Unsupported activation type")
 
 
+class BatchNormalization:   # Raw normalization without learnable parameters
+    def __init__(self):
+        self.epislon = 1e-15
+
+    def __call__(self, X):
+        self.X = X
+        
+        batch_mean = np.mean(self.X, axis=1)
+        batch_std = np.std(self.X, axis=1)
+
+        normalized = (self.X - batch_mean) / (batch_std + self.epislon)
+
+        return normalized
