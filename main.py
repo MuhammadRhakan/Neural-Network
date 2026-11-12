@@ -1,4 +1,4 @@
-from load_mnist import load_data
+from data.load_mnist import load_data
 from model.layers import Linear, Activation, BatchNormalization
 from model.loss import SoftmaxCrossEntropy
 from model.optimize import GradientDescent
@@ -27,6 +27,7 @@ data_load = DataLoader(X_train, y_train, batch_size=batch_size, drop_last=True, 
 models = Sequential([
     Linear(input_dim, hidden_dim),
     Activation('relu'),
+    BatchNormalization(hidden_dim),
     Linear(hidden_dim, output_dim)
 ]) 
 criterion = SoftmaxCrossEntropy()

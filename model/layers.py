@@ -50,7 +50,6 @@ class Activation:
         else:
             raise ValueError("Unsupported activation type")
 
-
     def backward(self, grad_output):
         if self.activation_type == 'sigmoid':
             sigmoid = 1 / (1 + np.exp(-self.Z))
@@ -67,16 +66,58 @@ class Activation:
             raise ValueError("Unsupported activation type")
 
 
-class BatchNormalization:   # Raw normalization without learnable parameters
-    def __init__(self):
-        self.epislon = 1e-15
+class BatchNormalization:
+    def __init__(self, num_features):
+        self.epsilon = 1e-5
+        self.gamma = np.ones((num_features, 1))
+        self.betha = np.zeros((num_features, 1))
 
-    def __call__(self, X):
+
+    def forward(self, X):
         self.X = X
+        self.M = X.shape[1]
+
+        self.mean = np.mean(X, axis=1, keepdims=True)
+        self.var = np.var(X, axis=1, keepdims=True)
+        self.X_norm = (X - self.mean) / np.sqrt(self.var + self.epsilon)
+
+        return (self.X_norm * self.gamma) + self.betha
+
+    def backward(self, grad_output):
+        M = self.M
+
+        # Gradient of learnable parameters
+        self.dgamma = np.sum(grad_output * self.X_norm, axis=1, keepdims=True)
+        self.dbetha = np.sum(grad_output, axis=1, keepdims=True)
+
+        # Gradient with respect to input
+        self.dX_norm = grad_output * self.gamma
         
-        batch_mean = np.mean(self.X, axis=1)
-        batch_std = np.std(self.X, axis=1)
+        self.dvar = np.sum(
+            self.dX_norm *
+            (self.X - self.mean) *
+            -0.5 * (self.var + self.epsilon)**(-1.5),
+            axis=1, keepdims=True
+        )
 
-        normalized = (self.X - batch_mean) / (batch_std + self.epislon)
+        self.dmean = (
+            np.sum(
+                self.dX_norm * -1 / (np.sqrt(self.var + self.epsilon)),
+                axis=1, keepdims=True
+            ) +
+            self.dvar * np.sum((self.X - self.mean), axis=1, keepdims=True) * -2/M
+        )
 
-        return normalized
+        grad_input = self.dX_norm * (
+            1 / np.sqrt(self.var + self.epsilon) +
+            self.dvar * 2/M * (self.X - self.mean) +
+            self.dmean / M)
+
+        return grad_input
+
+
+    def parameters(self):
+        return [
+            (self.gamma, self.dgamma),
+            (self.betha, self.dbetha),
+        ]

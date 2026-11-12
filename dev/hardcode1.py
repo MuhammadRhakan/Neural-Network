@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import os
-from load_mnist import load_data
+from data.load_mnist import load_data
 
 
 def initialize_parameters(input_size, hidden_size, output_size):

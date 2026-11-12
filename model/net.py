@@ -25,7 +25,6 @@ class Sequential:
         return params
     
 
-
 class DataLoader:
     def __init__(self, X, y, batch_size=None, drop_last=True, shuffle=True):
         self.X = X
