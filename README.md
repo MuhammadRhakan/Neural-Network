@@ -36,13 +36,13 @@ from model.net import Sequential, DataLoader
 data_load = DataLoader(X_train, y_train, batch_size=batch_size, drop_last=True, shuffle=True)
 
 models = Sequential([
-    Linear(input_dim, hidden_dim),
+    Linear(784, 64),
     Activation('relu'),
-    BatchNormalization(hidden_dim),
-    Linear(hidden_dim, output_dim),
+    BatchNormalization(64),
+    Linear(64, 10),
 ]) 
 criterion = SoftmaxCrossEntropy()
-optimize = GradientDescent(lr)
+optimize = GradientDescent(0.05)
 ```
 
 ### 3. Training Loop Execution
